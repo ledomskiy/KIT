@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map>
+	<bundle bundleID="478" class="net.java.kit.pca.IPCANodePlugin" localization="OSGI-INF/l10n/bundle" name="IPCA-Node extension for KNIME Workbench" project="IPCA" provider="">
+		<library name="ipca.jar"/>
+	</bundle>
+</map>

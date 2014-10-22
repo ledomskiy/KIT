@@ -1,0 +1,41 @@
+2014-10-22 23:10:36,253 INFO  ModalContext NodeLogger : #############################################################
+2014-10-22 23:10:36,254 INFO  ModalContext NodeLogger : #                                                           #
+2014-10-22 23:10:36,254 INFO  ModalContext NodeLogger : # Welcome to KNIME v2.10.3.0044468 (Build October 07, 2014)      #
+2014-10-22 23:10:36,254 INFO  ModalContext NodeLogger : # Based on Eclipse, www.eclipse.org                         #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # Uses: Java, GEF, Log4J                                    #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #                                                           #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #############################################################
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #                                                           #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # Copyrighty by KNIME GmbH, Konstanz, Germany               #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # website: http://www.knime.org                             #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # email: contact@knime.org                                  #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #                                                           #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #############################################################
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # For more details see the KNIME log file:                  #
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : # /home/lpa/repos/git/KIT/.metadata/knime/knime.log
+2014-10-22 23:10:36,255 INFO  ModalContext NodeLogger : #-----------------------------------------------------------#
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # logging date=Wed Oct 22 23:10:36 NOVT 2014
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # java.version=1.7.0_60
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # java.vm.version=24.60-b09
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # java.vendor=Oracle Corporation
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # os.name=Linux
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # os.arch=amd64
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # number of CPUs=2
+2014-10-22 23:10:36,256 INFO  ModalContext NodeLogger : # assertions=off
+2014-10-22 23:10:36,257 INFO  ModalContext NodeLogger : # host=lpa-note
+2014-10-22 23:10:36,259 INFO  ModalContext NodeLogger : # username=lpa
+2014-10-22 23:10:36,259 INFO  ModalContext NodeLogger : # max mem=341MB
+2014-10-22 23:10:36,260 INFO  ModalContext NodeLogger : # application=org.eclipse.ui.ide.workbench
+2014-10-22 23:10:36,264 INFO  ModalContext NodeLogger : # ID=01-2aa8b3d05aa86fa6
+2014-10-22 23:10:36,265 INFO  ModalContext NodeLogger : #############################################################
+2014-10-22 23:10:36,275 INFO  ModalContext StringHistory : History file '/home/lpa/repos/git/KIT/.metadata/knime/history_database_drivers.txt' does not exist.
+2014-10-22 23:10:36,275 INFO  ModalContext StringHistory : History file '/home/lpa/repos/git/KIT/.metadata/knime/history_database_urls.txt' does not exist.
+2014-10-22 23:10:36,279 DEBUG ModalContext DatabaseConnectionSettings : Database concurrency (sync via database connection) is true.
+2014-10-22 23:10:36,279 DEBUG ModalContext KNIMECorePlugin : Setting KNIME max thread count to 4
+2014-10-22 23:10:36,280 DEBUG ModalContext KNIMECorePlugin : Setting KNIME temp dir to "/tmp"
+2014-10-22 23:10:36,342 INFO  ModalContext KNIMECorePlugin : Setting console view log level to WARN
+2014-10-22 23:10:36,783 DEBUG ModalContext KnimeEncryption : Replacing current encryption key supplier "null" with this new one "org.knime.workbench.core.EclipseEncryptionKeySupplier@51252fcc".
+2014-10-22 23:10:36,784 DEBUG ModalContext DatabaseConnectionSettings : Settings database timeout to 15 seconds
+2014-10-22 23:10:36,800 DEBUG ModalContext KnimeEncryption : Replacing current encryption key supplier "org.knime.workbench.core.EclipseEncryptionKeySupplier@51252fcc" with this new one "org.knime.workbench.ui.masterkey.MasterKeyPreferencePage$1@274ed3a1".
+2014-10-22 23:10:36,959 DEBUG ModalContext SvgPluginActivator : Added SVG export option to node view class
+2014-10-22 23:10:36,992 DEBUG ModalContext KNIMEEditorPlugin : Workflow SVG export not available, unable to instantiate "org.knime.workbench.editor.svgexport.exportservice.WorkflowSVGExportImpl"

@@ -44,7 +44,7 @@ public class IPCANodeModel extends NodeModel {
 	static final String CFGKEY_COUNT = "Count";
 
     /** initial default count value. */
-    static final int DEFAULT_COUNT = 100;
+    static final int DEFAULT_COUNT = 2;
 
     // example value: the models count variable filled from the dialog 
     // and used in the models execution method. The default components of the

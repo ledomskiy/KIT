@@ -61,7 +61,7 @@ public class IPCANodeModel extends NodeModel {
     protected IPCANodeModel() {
     
         // TODO one incoming port and one outgoing port is assumed
-        super(1, 1);
+        super(1, 3);
     }
 
     /**

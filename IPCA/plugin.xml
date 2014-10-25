@@ -16,10 +16,11 @@
    
    <extension
          point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/"
-            factory-class="net.java.kit.pca.IPCANodeFactory"
-            id="net.java.kit.pca.IPCANodeFactory"/>
+      <node category-path="/KITCategory" factory-class="net.java.kit.pca.IPCANodeFactory" id="net.java.kit.pca.IPCANodeFactory"/>
+   </extension>
+   <extension point="org.knime.workbench.repository.categories">
+      <category description="Nodes for interval analysis" icon="icons/category_kit.png" level-id="KITCategory" name="Interval Tools" path="/">
+      </category>
    </extension>
    
 </plugin>

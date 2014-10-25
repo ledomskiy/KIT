@@ -17,9 +17,6 @@ public class IPCANodeView extends NodeView<IPCANodeModel> {
      */
     protected IPCANodeView(final IPCANodeModel nodeModel) {
         super(nodeModel);
-
-        // TODO instantiate the components of the view here.
-
     }
 
     /**
@@ -45,7 +42,6 @@ public class IPCANodeView extends NodeView<IPCANodeModel> {
     @Override
     protected void onClose() {
     
-        // TODO things to do when closing the view
     }
 
     /**
@@ -54,7 +50,6 @@ public class IPCANodeView extends NodeView<IPCANodeModel> {
     @Override
     protected void onOpen() {
 
-        // TODO things to do when opening the view
     }
 
 }

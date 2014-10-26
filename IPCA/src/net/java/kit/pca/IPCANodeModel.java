@@ -38,30 +38,17 @@ public class IPCANodeModel extends NodeModel {
     private static final NodeLogger logger = NodeLogger
             .getLogger(IPCANodeModel.class);
         
-    /** the settings key which is used to retrieve and 
-        store the settings (from the dialog or from a settings file)    
-       (package visibility to be usable from the dialog). */
-	static final String CFGKEY_COUNT = "Count";
-
-    /** initial default count value. */
-    static final int DEFAULT_COUNT = 2;
-
-    // example value: the models count variable filled from the dialog 
-    // and used in the models execution method. The default components of the
-    // dialog work with "SettingsModels".
-    private final SettingsModelIntegerBounded m_count =
-        new SettingsModelIntegerBounded(IPCANodeModel.CFGKEY_COUNT,
-                    IPCANodeModel.DEFAULT_COUNT,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE);
-    
+    static final String CFGKEY_COUNT_PC = "Count principal components";
+    static final int DEFAULT_COUNT_PC = 2;
+    private final SettingsModelIntegerBounded countPC =
+    	new SettingsModelIntegerBounded(CFGKEY_COUNT_PC, DEFAULT_COUNT_PC, 
+    									0, Integer.MAX_VALUE);
 
     /**
      * Constructor for the node model.
      */
     protected IPCANodeModel() {
-    
-        // TODO one incoming port and one outgoing port is assumed
-        super(1, 3);
+    	super(1, 1);
     }
 
     /**
@@ -72,25 +59,41 @@ public class IPCANodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
 
         // TODO do something here
-        logger.info("Node Model Stub... this is not yet implemented !");
-
+        logger.info("Count of principal components:" + countPC.getIntValue());
         
-        // the data table spec of the single output table, 
-        // the table will have three columns:
-        DataColumnSpec[] allColSpecs = new DataColumnSpec[3];
-        allColSpecs[0] = 
-            new DataColumnSpecCreator("Column 0", StringCell.TYPE).createSpec();
-        allColSpecs[1] = 
-            new DataColumnSpecCreator("Column 1", DoubleCell.TYPE).createSpec();
-        allColSpecs[2] = 
-            new DataColumnSpecCreator("Column 2", IntCell.TYPE).createSpec();
+        logger.info("Count of columns input datatable: " + 
+        		inData[0].getDataTableSpec().getNumColumns());
+        
+        
+        DataColumnSpec[] allColSpecs = new DataColumnSpec[countPC.getIntValue()*2];
+        
+        // TODO Introduce new method
+        for (int numPC = 0; numPC < countPC.getIntValue(); numPC++){
+        	allColSpecs [numPC*2] = 
+            		new DataColumnSpecCreator ("PC"+(numPC+1)+"_inf", DoubleCell.TYPE).createSpec();
+        	allColSpecs [numPC*2+1] = 
+            		new DataColumnSpecCreator ("PC"+(numPC+1)+"_sup", DoubleCell.TYPE).createSpec();
+        }
         DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
+        
+        
         // the execution context will provide us with storage capacity, in this
         // case a data container to which we will add rows sequentially
         // Note, this container can also handle arbitrary big data tables, it
         // will buffer to disc if necessary.
         BufferedDataContainer container = exec.createDataContainer(outputSpec);
         // let's add m_count rows to it
+        
+        for (int rowNumber = 0; rowNumber < inData[0].getRowCount(); rowNumber++){
+        	RowKey key = new RowKey ("Data projected " + (rowNumber+1));
+            DataCell[] cells = new DataCell [allColSpecs.length];
+            for(int i=0; i<cells.length; i++){
+            	cells[i] = new DoubleCell (i*(rowNumber+1));
+            }
+            DataRow row = new DefaultRow (key, cells);
+            container.addRowToTable(row);
+        }
+        /*
         for (int i = 0; i < m_count.getIntValue(); i++) {
             RowKey key = new RowKey("Row " + i);
             // the cells of the current row, the types of the cells must match
@@ -107,8 +110,11 @@ public class IPCANodeModel extends NodeModel {
             exec.setProgress(i / (double)m_count.getIntValue(), 
                 "Adding row " + i);
         }
+        */
         // once we are done, we close the container and return its table
         container.close();
+        
+        
         BufferedDataTable out = container.getTable();
         return new BufferedDataTable[]{out};
     }
@@ -144,11 +150,7 @@ public class IPCANodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-
-        // TODO save user settings to the config object.
-        
-        m_count.saveSettingsTo(settings);
-
+    	countPC.saveSettingsTo(settings);
     }
 
     /**
@@ -157,12 +159,7 @@ public class IPCANodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-            
-        // TODO load (valid) settings from the config object.
-        // It can be safely assumed that the settings are valided by the 
-        // method below.
-        
-        m_count.loadSettingsFrom(settings);
+        countPC.loadSettingsFrom(settings);
 
     }
 
@@ -178,7 +175,7 @@ public class IPCANodeModel extends NodeModel {
         // SettingsModel).
         // Do not actually set any values of any member variables.
 
-        m_count.validateSettings(settings);
+        countPC.validateSettings(settings);
 
     }
     

@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path="src"/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-    <classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-math3-3.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/boehm-creals-0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/fortress-rounding-0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jinterval-interval-java-0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jinterval-rational-java-0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/PCA-1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>

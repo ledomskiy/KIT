@@ -8,7 +8,9 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -24,7 +26,10 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-
+import net.java.jinterval.matrixutils.ConverterMatrix;
+import net.java.jinterval.pca.AbstractPCA;
+import net.java.jinterval.pca.CIPCA;
+import net.java.jinterval.interval.Interval;
 
 /**
  * This is the model implementation of IPCA.
@@ -64,11 +69,49 @@ public class IPCANodeModel extends NodeModel {
         logger.info("Count of columns input datatable: " + 
         		inData[0].getDataTableSpec().getNumColumns());
         
+        int countRows = inData[0].getRowCount();
+        int countColumns = inData[0].getDataTableSpec().getNumColumns();
         
-        DataColumnSpec[] allColSpecs = new DataColumnSpec[countPC.getIntValue()*2];
+        Double[][] matrixDouble = new Double[countRows][countColumns];
+        
+        int numRow = 0;
+        CloseableRowIterator iterator = inData[0].iterator();
+        DataType currentCellType;
+        while(iterator.hasNext()){
+        	DataRow currentRow = iterator.next();
+        	for (int numColumn=0; numColumn<countColumns; numColumn++){
+        		currentCellType = currentRow.getCell(numColumn).getType();
+        		
+        		logger.info("["+numRow+"]["+numColumn+"]:" 
+        				+currentCellType.toString()
+        				+":"+inData[0].getDataTableSpec().getColumnSpec(numColumn).getType().toString()
+        				);
+        		if(currentCellType.equals(DoubleCell.TYPE)){
+        			matrixDouble[numRow][numColumn] = ((DoubleCell)currentRow.getCell(numColumn)).getDoubleValue();
+            	}else{
+            		matrixDouble[numRow][numColumn] = (Double)((IntCell)currentRow.getCell(numColumn)).getDoubleValue();
+            	}
+        		System.out.print(matrixDouble[numRow][numColumn]+ "|");
+        	}
+        	numRow++;
+
+            System.out.println();
+        }
+        
+        Interval[][] intervalMatrix;
+        intervalMatrix = ConverterMatrix.convertDoubleToInterval(matrixDouble);
+        AbstractPCA.WeightingSchemes weightingScheme = AbstractPCA.WeightingSchemes.EqualWeight;
+        CIPCA pca = new CIPCA (intervalMatrix, weightingScheme);
+        pca.solve();
+        
+        Interval[][] scoresMatrixInterval = pca.getScoresMatrix();
+        Double[][] scoresMatrixDouble = ConverterMatrix.convertIntervalToDouble(scoresMatrixInterval);
+        
+        
+        DataColumnSpec[] allColSpecs = new DataColumnSpec[countColumns];
         
         // TODO Introduce new method
-        for (int numPC = 0; numPC < countPC.getIntValue(); numPC++){
+        for (int numPC = 0; numPC < countColumns/2; numPC++){
         	allColSpecs [numPC*2] = 
             		new DataColumnSpecCreator ("PC"+(numPC+1)+"_inf", DoubleCell.TYPE).createSpec();
         	allColSpecs [numPC*2+1] = 
@@ -88,10 +131,11 @@ public class IPCANodeModel extends NodeModel {
         	RowKey key = new RowKey ("Data projected " + (rowNumber+1));
             DataCell[] cells = new DataCell [allColSpecs.length];
             for(int i=0; i<cells.length; i++){
-            	cells[i] = new DoubleCell (i*(rowNumber+1));
+            	cells[i] = new DoubleCell (scoresMatrixDouble[rowNumber][i]);
             }
             DataRow row = new DefaultRow (key, cells);
             container.addRowToTable(row);
+            
         }
         /*
         for (int i = 0; i < m_count.getIntValue(); i++) {

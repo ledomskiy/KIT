@@ -3,6 +3,7 @@ package net.java.kit.pca;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.base.node.mine.pca.SettingsModelPCADimensions;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -18,7 +19,11 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelOptionalString;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -43,11 +48,26 @@ public class IPCANodeModel extends NodeModel {
     private static final NodeLogger logger = NodeLogger
             .getLogger(IPCANodeModel.class);
         
-    static final String CFGKEY_COUNT_PC = "Count principal components";
-    static final int DEFAULT_COUNT_PC = 2;
-    private final SettingsModelIntegerBounded countPC =
-    	new SettingsModelIntegerBounded(CFGKEY_COUNT_PC, DEFAULT_COUNT_PC, 
-    									0, Integer.MAX_VALUE);
+    static final String CFGKEY_DIMENSION_PCA = "PCA dimensions";
+    static final int DEFAILT_DIMENSION_PCA_INT = 2;
+    static final double DEFAILT_DIMENSION_PCA_DOUBLE = 80.0;
+    private final SettingsModelPCADimensions dimensionsPCA = 
+    	new SettingsModelPCADimensions(
+    		CFGKEY_DIMENSION_PCA, DEFAILT_DIMENSION_PCA_INT, 
+    		DEFAILT_DIMENSION_PCA_DOUBLE, false);
+    
+    
+    static final String CFGKEY_WEIGHTING_SCHEME = "Weighting scheme";
+    static final String DEFAULT_WEIGHTING_SCHEME = "EqualWeight";
+    static final String[] weightingSchemes = 
+    	{"EqualWeight", "ProportionalVolume","InverselyProportionalVolume"};
+    
+    private final SettingsModelString weightingScheme = 
+    	new SettingsModelString(CFGKEY_WEIGHTING_SCHEME, DEFAULT_WEIGHTING_SCHEME);
+    
+    static final String CFGKEY_COLUMN_FILTER = "Filter of columns";
+    private final SettingsModelColumnFilter2 columnFilter = 
+    	new SettingsModelColumnFilter2(CFGKEY_COLUMN_FILTER);
 
     /**
      * Constructor for the node model.
@@ -63,9 +83,6 @@ public class IPCANodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
-        // TODO do something here
-        logger.info("Count of principal components:" + countPC.getIntValue());
-        
         logger.info("Count of columns input datatable: " + 
         		inData[0].getDataTableSpec().getNumColumns());
         
@@ -194,7 +211,7 @@ public class IPCANodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-    	countPC.saveSettingsTo(settings);
+    	//countPC.saveSettingsTo(settings);
     }
 
     /**
@@ -203,7 +220,7 @@ public class IPCANodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        countPC.loadSettingsFrom(settings);
+        //countPC.loadSettingsFrom(settings);
 
     }
 
@@ -219,7 +236,7 @@ public class IPCANodeModel extends NodeModel {
         // SettingsModel).
         // Do not actually set any values of any member variables.
 
-        countPC.validateSettings(settings);
+        //countPC.validateSettings(settings);
 
     }
     

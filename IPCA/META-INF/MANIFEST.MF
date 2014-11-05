@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: IPCA-Node extension for KNIME Workbench
 Bundle-SymbolicName: net.java.kit.pca; singleton:=true
-Bundle-Version: 0.1.14
+Bundle-Version: 0.1.18
 Bundle-ClassPath: ipca.jar,
  lib/boehm-creals-0.1-SNAPSHOT.jar,
  lib/fortress-rounding-0.1-SNAPSHOT.jar,

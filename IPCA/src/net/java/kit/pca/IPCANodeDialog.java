@@ -1,8 +1,14 @@
 package net.java.kit.pca;
 
+import org.knime.base.node.mine.pca.DialogComponentChoiceConfig;
+import org.knime.base.node.mine.pca.SettingsModelPCADimensions;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * <code>NodeDialog</code> for the "IPCA" Node.
@@ -25,12 +31,22 @@ public class IPCANodeDialog extends DefaultNodeSettingsPane {
     protected IPCANodeDialog() {
         super();
         
-        addDialogComponent(new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-                    IPCANodeModel.CFGKEY_COUNT_PC,
-                    IPCANodeModel.DEFAULT_COUNT_PC,
-                    0, Integer.MAX_VALUE),
-                    "Count of principal components", 1, 5));
+        addDialogComponent(new DialogComponentChoiceConfig(
+        		new SettingsModelPCADimensions(
+        			IPCANodeModel.CFGKEY_DIMENSION_PCA, IPCANodeModel.DEFAILT_DIMENSION_PCA_INT, 
+        			IPCANodeModel.DEFAILT_DIMENSION_PCA_DOUBLE, false), 
+        		false));
+        
+        addDialogComponent(new DialogComponentStringSelection(
+        		new SettingsModelString(
+        			IPCANodeModel.CFGKEY_WEIGHTING_SCHEME, 
+        			IPCANodeModel.DEFAULT_WEIGHTING_SCHEME),
+        		IPCANodeModel.CFGKEY_WEIGHTING_SCHEME, IPCANodeModel.weightingSchemes
+        		));
+        addDialogComponent(new DialogComponentColumnFilter2(
+        		new SettingsModelColumnFilter2(
+        			IPCANodeModel.CFGKEY_COLUMN_FILTER), 
+        		0));
                     
     }
 }

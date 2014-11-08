@@ -41,7 +41,7 @@ public class IPCANodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(
         			IPCANodeModel.CFGKEY_WEIGHTING_SCHEME, 
         			IPCANodeModel.DEFAULT_WEIGHTING_SCHEME),
-        		IPCANodeModel.CFGKEY_WEIGHTING_SCHEME, IPCANodeModel.weightingSchemes
+        		IPCANodeModel.CFGKEY_WEIGHTING_SCHEME, IPCANodeModel.m_weightingSchemes
         		));
         addDialogComponent(new DialogComponentColumnFilter2(
         		new SettingsModelColumnFilter2(

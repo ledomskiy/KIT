@@ -51,7 +51,7 @@ public class IPCANodeModel extends NodeModel {
     static final String CFGKEY_DIMENSION_PCA = "PCA dimensions";
     static final int DEFAILT_DIMENSION_PCA_INT = 2;
     static final double DEFAILT_DIMENSION_PCA_DOUBLE = 80.0;
-    private final SettingsModelPCADimensions dimensionsPCA = 
+    private final SettingsModelPCADimensions m_dimensionsPCA = 
     	new SettingsModelPCADimensions(
     		CFGKEY_DIMENSION_PCA, DEFAILT_DIMENSION_PCA_INT, 
     		DEFAILT_DIMENSION_PCA_DOUBLE, false);
@@ -59,14 +59,14 @@ public class IPCANodeModel extends NodeModel {
     
     static final String CFGKEY_WEIGHTING_SCHEME = "Weighting scheme";
     static final String DEFAULT_WEIGHTING_SCHEME = "EqualWeight";
-    static final String[] weightingSchemes = 
+    static final String[] m_weightingSchemes = 
     	{"EqualWeight", "ProportionalVolume","InverselyProportionalVolume"};
     
-    private final SettingsModelString weightingScheme = 
+    private final SettingsModelString m_weightingScheme = 
     	new SettingsModelString(CFGKEY_WEIGHTING_SCHEME, DEFAULT_WEIGHTING_SCHEME);
     
     static final String CFGKEY_COLUMN_FILTER = "Filter of columns";
-    private final SettingsModelColumnFilter2 columnFilter = 
+    private final SettingsModelColumnFilter2 m_columnFilter = 
     	new SettingsModelColumnFilter2(CFGKEY_COLUMN_FILTER);
 
     /**
@@ -90,6 +90,7 @@ public class IPCANodeModel extends NodeModel {
         int countColumns = inData[0].getDataTableSpec().getNumColumns();
         
         Double[][] matrixDouble = new Double[countRows][countColumns];
+        RowKey[] rowKeys = new RowKey [inData[0].getRowCount()];
         
         int numRow = 0;
         CloseableRowIterator iterator = inData[0].iterator();
@@ -97,12 +98,9 @@ public class IPCANodeModel extends NodeModel {
         while(iterator.hasNext()){
         	DataRow currentRow = iterator.next();
         	for (int numColumn=0; numColumn<countColumns; numColumn++){
+        		
         		currentCellType = currentRow.getCell(numColumn).getType();
         		
-        		logger.info("["+numRow+"]["+numColumn+"]:" 
-        				+currentCellType.toString()
-        				+":"+inData[0].getDataTableSpec().getColumnSpec(numColumn).getType().toString()
-        				);
         		if(currentCellType.equals(DoubleCell.TYPE)){
         			matrixDouble[numRow][numColumn] = ((DoubleCell)currentRow.getCell(numColumn)).getDoubleValue();
             	}else{
@@ -110,25 +108,43 @@ public class IPCANodeModel extends NodeModel {
             	}
         		System.out.print(matrixDouble[numRow][numColumn]+ "|");
         	}
+        	rowKeys [numRow] = currentRow.getKey();
         	numRow++;
 
             System.out.println();
         }
         
+        
         Interval[][] intervalMatrix;
         intervalMatrix = ConverterMatrix.convertDoubleToInterval(matrixDouble);
-        AbstractPCA.WeightingSchemes weightingScheme = AbstractPCA.WeightingSchemes.EqualWeight;
-        CIPCA pca = new CIPCA (intervalMatrix, weightingScheme);
+        int countPC;
+        double cumulativeContributionRate;
+        AbstractPCA.WeightingSchemes weightingScheme
+        	= AbstractPCA.WeightingSchemes.valueOf(m_weightingScheme.getStringValue()); 
+        AbstractPCA pca;
+        
+        
+        logger.info("WeightingScheme = " + weightingScheme.toString());
+        if (m_dimensionsPCA.getDimensionsSelected()){
+        	countPC = m_dimensionsPCA.getDimensions();
+        	logger.info("countPC = " + countPC);
+        	pca = new CIPCA (intervalMatrix, countPC, weightingScheme);
+        }else{
+        	cumulativeContributionRate = m_dimensionsPCA.getMinQuality();
+        	logger.info("cumulativeContributionRate = " + cumulativeContributionRate);
+        	pca = new CIPCA (intervalMatrix, cumulativeContributionRate, weightingScheme);
+        }
+        
         pca.solve();
         
         Interval[][] scoresMatrixInterval = pca.getScoresMatrix();
         Double[][] scoresMatrixDouble = ConverterMatrix.convertIntervalToDouble(scoresMatrixInterval);
         
-        
-        DataColumnSpec[] allColSpecs = new DataColumnSpec[countColumns];
+        int countColumnScoresMatrix = scoresMatrixDouble[0].length;
+        DataColumnSpec[] allColSpecs = new DataColumnSpec[countColumnScoresMatrix];
         
         // TODO Introduce new method
-        for (int numPC = 0; numPC < countColumns/2; numPC++){
+        for (int numPC = 0; numPC < countColumnScoresMatrix/2; numPC++){
         	allColSpecs [numPC*2] = 
             		new DataColumnSpecCreator ("PC"+(numPC+1)+"_inf", DoubleCell.TYPE).createSpec();
         	allColSpecs [numPC*2+1] = 
@@ -144,9 +160,10 @@ public class IPCANodeModel extends NodeModel {
         BufferedDataContainer container = exec.createDataContainer(outputSpec);
         // let's add m_count rows to it
         
+        
         for (int rowNumber = 0; rowNumber < inData[0].getRowCount(); rowNumber++){
-        	RowKey key = new RowKey ("Data projected " + (rowNumber+1));
-            DataCell[] cells = new DataCell [allColSpecs.length];
+        	RowKey key = rowKeys[rowNumber];
+            DataCell[] cells = new DataCell [countColumnScoresMatrix];
             for(int i=0; i<cells.length; i++){
             	cells[i] = new DoubleCell (scoresMatrixDouble[rowNumber][i]);
             }
@@ -211,7 +228,9 @@ public class IPCANodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-    	//countPC.saveSettingsTo(settings);
+    	m_columnFilter.saveSettingsTo(settings);
+    	m_dimensionsPCA.saveSettingsTo(settings);
+    	m_weightingScheme.saveSettingsTo(settings);
     }
 
     /**
@@ -220,7 +239,9 @@ public class IPCANodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        //countPC.loadSettingsFrom(settings);
+        m_columnFilter.loadSettingsFrom(settings);
+        m_dimensionsPCA.loadSettingsFrom(settings);
+        m_weightingScheme.loadSettingsFrom(settings);
 
     }
 
@@ -236,7 +257,9 @@ public class IPCANodeModel extends NodeModel {
         // SettingsModel).
         // Do not actually set any values of any member variables.
 
-        //countPC.validateSettings(settings);
+        m_columnFilter.validateSettings(settings);
+        m_dimensionsPCA.validateSettings(settings);
+        m_weightingScheme.validateSettings(settings);
 
     }
     

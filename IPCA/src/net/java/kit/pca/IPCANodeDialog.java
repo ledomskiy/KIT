@@ -31,6 +31,13 @@ public class IPCANodeDialog extends DefaultNodeSettingsPane {
     protected IPCANodeDialog() {
         super();
         
+        addDialogComponent(new DialogComponentStringSelection(
+        		new SettingsModelString(
+        			IPCANodeModel.CFGKEY_PCA_METHOD, 
+        			IPCANodeModel.DEFAULT_PCA_METHOD),
+        		IPCANodeModel.CFGKEY_PCA_METHOD, IPCANodeModel.m_pcaMethods
+        		));
+        
         addDialogComponent(new DialogComponentChoiceConfig(
         		new SettingsModelPCADimensions(
         			IPCANodeModel.CFGKEY_DIMENSION_PCA, IPCANodeModel.DEFAILT_DIMENSION_PCA_INT, 

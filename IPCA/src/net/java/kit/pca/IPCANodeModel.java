@@ -33,6 +33,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import net.java.jinterval.matrixutils.ConverterMatrix;
 import net.java.jinterval.pca.AbstractPCA;
+import net.java.jinterval.pca.CPCA;
+import net.java.jinterval.pca.VPCA;
 import net.java.jinterval.pca.CIPCA;
 import net.java.jinterval.interval.Interval;
 
@@ -47,6 +49,14 @@ public class IPCANodeModel extends NodeModel {
     // the logger instance
     private static final NodeLogger logger = NodeLogger
             .getLogger(IPCANodeModel.class);
+    
+    static final String CFGKEY_PCA_METHOD = "PCA method";
+    static final String DEFAULT_PCA_METHOD = "CIPCA";
+    static final String[] m_pcaMethods = 
+    	{"CPCA", "VPCA","CIPCA"};
+    private final SettingsModelString m_pcaMethod = 
+        	new SettingsModelString(CFGKEY_PCA_METHOD, DEFAULT_PCA_METHOD);
+    
         
     static final String CFGKEY_DIMENSION_PCA = "PCA dimensions";
     static final int DEFAILT_DIMENSION_PCA_INT = 2;
@@ -73,7 +83,7 @@ public class IPCANodeModel extends NodeModel {
      * Constructor for the node model.
      */
     protected IPCANodeModel() {
-    	super(1, 1);
+    	super(1, 3);
     }
 
     /**
@@ -121,18 +131,33 @@ public class IPCANodeModel extends NodeModel {
         double cumulativeContributionRate;
         AbstractPCA.WeightingSchemes weightingScheme
         	= AbstractPCA.WeightingSchemes.valueOf(m_weightingScheme.getStringValue()); 
-        AbstractPCA pca;
+        AbstractPCA pca = null;
         
-        
+        logger.info("PCA Method = " + m_pcaMethod.getStringValue());
         logger.info("WeightingScheme = " + weightingScheme.toString());
         if (m_dimensionsPCA.getDimensionsSelected()){
         	countPC = m_dimensionsPCA.getDimensions();
         	logger.info("countPC = " + countPC);
-        	pca = new CIPCA (intervalMatrix, countPC, weightingScheme);
+        	switch (m_pcaMethod.getStringValue()){
+        		case "CPCA": pca = new CPCA (intervalMatrix, countPC, weightingScheme);
+        					 break;
+        		case "VPCA": pca = new VPCA (intervalMatrix, countPC, weightingScheme);
+	             		     break;
+        		case "CIPCA": pca = new CIPCA (intervalMatrix, countPC, weightingScheme);
+	                          break;
+        	}
+        	
         }else{
         	cumulativeContributionRate = m_dimensionsPCA.getMinQuality();
         	logger.info("cumulativeContributionRate = " + cumulativeContributionRate);
-        	pca = new CIPCA (intervalMatrix, cumulativeContributionRate, weightingScheme);
+        	switch (m_pcaMethod.getStringValue()){
+	    		case "CPCA": pca = new CPCA (intervalMatrix, cumulativeContributionRate, weightingScheme);
+	    		             break;
+	    		case "VPCA": pca = new VPCA (intervalMatrix, cumulativeContributionRate, weightingScheme);
+	             	         break;
+	    		case "CIPCA": pca = new CIPCA (intervalMatrix, cumulativeContributionRate, weightingScheme);
+	                          break;
+        	}
         }
         
         pca.solve();
@@ -141,25 +166,19 @@ public class IPCANodeModel extends NodeModel {
         Double[][] scoresMatrixDouble = ConverterMatrix.convertIntervalToDouble(scoresMatrixInterval);
         
         int countColumnScoresMatrix = scoresMatrixDouble[0].length;
-        DataColumnSpec[] allColSpecs = new DataColumnSpec[countColumnScoresMatrix];
+        DataColumnSpec[] scoresMatrixSpecs = new DataColumnSpec[countColumnScoresMatrix];
         
         // TODO Introduce new method
         for (int numPC = 0; numPC < countColumnScoresMatrix/2; numPC++){
-        	allColSpecs [numPC*2] = 
+        	scoresMatrixSpecs [numPC*2] = 
             		new DataColumnSpecCreator ("PC"+(numPC+1)+"_inf", DoubleCell.TYPE).createSpec();
-        	allColSpecs [numPC*2+1] = 
+        	scoresMatrixSpecs [numPC*2+1] = 
             		new DataColumnSpecCreator ("PC"+(numPC+1)+"_sup", DoubleCell.TYPE).createSpec();
         }
-        DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
+        DataTableSpec scoresOutputSpec = new DataTableSpec(scoresMatrixSpecs);
         
         
-        // the execution context will provide us with storage capacity, in this
-        // case a data container to which we will add rows sequentially
-        // Note, this container can also handle arbitrary big data tables, it
-        // will buffer to disc if necessary.
-        BufferedDataContainer container = exec.createDataContainer(outputSpec);
-        // let's add m_count rows to it
-        
+        BufferedDataContainer containerScores = exec.createDataContainer(scoresOutputSpec);
         
         for (int rowNumber = 0; rowNumber < inData[0].getRowCount(); rowNumber++){
         	RowKey key = rowKeys[rowNumber];
@@ -168,33 +187,65 @@ public class IPCANodeModel extends NodeModel {
             	cells[i] = new DoubleCell (scoresMatrixDouble[rowNumber][i]);
             }
             DataRow row = new DefaultRow (key, cells);
-            container.addRowToTable(row);
+            containerScores.addRowToTable(row);
             
         }
-        /*
-        for (int i = 0; i < m_count.getIntValue(); i++) {
-            RowKey key = new RowKey("Row " + i);
-            // the cells of the current row, the types of the cells must match
-            // the column spec (see above)
-            DataCell[] cells = new DataCell[3];
-            cells[0] = new StringCell("String_" + i); 
-            cells[1] = new DoubleCell(0.5 * i); 
-            cells[2] = new IntCell(i);
-            DataRow row = new DefaultRow(key, cells);
-            container.addRowToTable(row);
-            
-            // check if the execution monitor was canceled
-            exec.checkCanceled();
-            exec.setProgress(i / (double)m_count.getIntValue(), 
-                "Adding row " + i);
+        containerScores.close();
+        BufferedDataTable scoresDataTable = containerScores.getTable();
+        
+        
+        double[][] loadingMatrix = pca.getLoadingsMatrix();
+        int countColumnLoadingMatrix = loadingMatrix[0].length;
+        DataColumnSpec[] loadingMatrixSpecs = new DataColumnSpec[countColumnLoadingMatrix];
+        
+        
+        for (int numPC = 0; numPC < countColumnLoadingMatrix; numPC++){
+        	loadingMatrixSpecs [numPC] = 
+            		new DataColumnSpecCreator ("PC"+(numPC+1), DoubleCell.TYPE).createSpec();
         }
-        */
-        // once we are done, we close the container and return its table
-        container.close();
+        DataTableSpec loadingOutputSpec = new DataTableSpec(loadingMatrixSpecs);
         
         
-        BufferedDataTable out = container.getTable();
-        return new BufferedDataTable[]{out};
+        BufferedDataContainer containerLoadings = exec.createDataContainer(loadingOutputSpec);
+        
+        for (int rowNumber = 0; rowNumber < loadingMatrix.length; rowNumber++){
+        	RowKey key = new RowKey (inData[0].getDataTableSpec().getColumnSpec(rowNumber*2).getName());
+            DataCell[] cells = new DataCell [countColumnLoadingMatrix];
+            for(int i=0; i<cells.length; i++){
+            	cells[i] = new DoubleCell (loadingMatrix[rowNumber][i]);
+            }
+            DataRow row = new DefaultRow (key, cells);
+            containerLoadings.addRowToTable(row);
+            
+        }
+        containerLoadings.close();
+        BufferedDataTable loadingsDataTable = containerLoadings.getTable();
+        
+        
+        
+        double[] contributionRates = pca.getContributionRates();
+        DataColumnSpec[] contributionRatesSpecs = new DataColumnSpec[1];
+        contributionRatesSpecs[0] = new DataColumnSpecCreator ("Contribution", DoubleCell.TYPE).createSpec();
+        
+        DataTableSpec contributionOutputSpec = new DataTableSpec(contributionRatesSpecs);
+        
+        
+        BufferedDataContainer containerContributions = exec.createDataContainer(contributionOutputSpec);
+        
+        for (int rowNumber = 0; rowNumber < contributionRates.length; rowNumber++){
+        	RowKey key = new RowKey ("PC"+(rowNumber+1));
+            DataCell[] cells = new DataCell [1];
+            cells[0] = new DoubleCell (contributionRates[rowNumber]);
+            DataRow row = new DefaultRow (key, cells);
+            containerContributions.addRowToTable(row);
+        }
+        
+        containerContributions.close();
+        BufferedDataTable contributionsDataTable = containerContributions.getTable();
+        
+        
+        
+        return new BufferedDataTable[]{scoresDataTable, loadingsDataTable, contributionsDataTable};
     }
 
     /**
@@ -228,6 +279,7 @@ public class IPCANodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+    	m_pcaMethod.saveSettingsTo(settings);
     	m_columnFilter.saveSettingsTo(settings);
     	m_dimensionsPCA.saveSettingsTo(settings);
     	m_weightingScheme.saveSettingsTo(settings);
@@ -239,6 +291,7 @@ public class IPCANodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+    	m_pcaMethod.loadSettingsFrom(settings);
         m_columnFilter.loadSettingsFrom(settings);
         m_dimensionsPCA.loadSettingsFrom(settings);
         m_weightingScheme.loadSettingsFrom(settings);
@@ -256,7 +309,7 @@ public class IPCANodeModel extends NodeModel {
         // e.g. if the count is in a certain range (which is ensured by the
         // SettingsModel).
         // Do not actually set any values of any member variables.
-
+    	m_pcaMethod.validateSettings(settings);
         m_columnFilter.validateSettings(settings);
         m_dimensionsPCA.validateSettings(settings);
         m_weightingScheme.validateSettings(settings);

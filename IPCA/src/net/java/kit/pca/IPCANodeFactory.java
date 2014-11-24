@@ -26,7 +26,7 @@ public class IPCANodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 1;
+        return 3;
     }
 
     /**
